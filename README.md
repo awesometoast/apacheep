@@ -10,6 +10,8 @@ I work with and build a lot of LAMP applications. Many of them use a hosted data
 git clone https://github.com/awesometoast/apacheep.git
 cd apacheep
 
+# Customize it (optional, see below)
+
 # Build it
 docker build -t awesometoast/apacheep:latest .
 
@@ -32,6 +34,7 @@ docker run -d -p 8080:80 --name pile_of_cinnamon_toasts awesometoast/apacheep
 docker exec -it pile_of_cinnamon_toasts bash
 ```
 
+# Customize it
 ## Adding your own application content
 Apacheep uses a volume to "sync" your application files with the host machine. For example, let's say your app is entirely self-contained in one file, titled french_toast.php. You would place french_toast.php in the html folder of Apacheep.
 
