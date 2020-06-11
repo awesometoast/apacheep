@@ -66,7 +66,7 @@ Note that unlike the volume'd `html` folder above, these config files are copied
 Copies of the default config files are also in the /configs folder in case you need them for reference.
 
 #### A note for RedHat/CentOS/Windows Apache users
-On those platforms, you're used to the binary being named `httpd`. But in the Ubuntu/Debian world, it's called `apache2` because reasons, even though it's all the exact same thing. (Probably. There are probably reasons.) So `apache2.conf` is the same thing as the `httpd.conf`, in the slim-but-possible chance you were wondering about that.
+On those platforms, you're used to things being named `httpd`. But in the Ubuntu/Debian world, they're named `apache2` even though it's all the same stuff. Why? Because reasons. Probably. There are probably reasons. The point is, `apache2.conf` is the same thing as the `httpd.conf`, in the slim-but-possible chance you were wondering about that.
 
 #### Default PHP extensions enabled
 bz2, curl, fileinfo, gd2, gettext, mbstring, openssl, pdo_mysql
