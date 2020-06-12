@@ -42,11 +42,13 @@ COPY ./configs/apache2.conf /etc/apache2/apache2.conf
 COPY ./configs/php.ini      /etc/php/7.4/apache2/php.ini
 
 # Copy your application files and set up the volume
-ADD html/ /var/www/html
-VOLUME "/html"
+RUN mkdir /app
+RUN chown -R www-data:staff /app
+ADD app/ /app
+VOLUME "/app"
 
-RUN chown -R www-data:staff /var/www/html
-RUN rm /var/www/html/index.html
+# This will cause our default DriectoryRoot to remain /var/www/html instead of /app, so let's remove it
+RUN rm /etc/apache2/sites-enabled/000-default.conf
 
 # Copy and run the additional configuration script
 # By default, this creates an alias for httpd="apache2" (just as an example)

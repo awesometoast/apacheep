@@ -36,18 +36,24 @@ docker exec -it pile_of_cinnamon_toasts bash
 
 # Customize it
 ## Adding your own application content
-Apacheep uses a volume to "sync" your application files with the host machine. For example, let's say your app is entirely self-contained in one file, titled french_toast.php. You would place french_toast.php in the html folder of Apacheep.
+
+### Option 1: One-time copy
+Anything you add to the `app` directory will be copied to the container's `/app` directory on build. If you won't need to make changes to your PHP app after running the container, this is a good option.
+
+### Option 2: Use a volume (a.k.a. bind mount) to keep the app folder "synced"
+Using this method, any changes you make to the `apacheep/app` directory's contents will be automagically applied to the `/app` folder inside your running container and vice-versa. To achieve this, add this line to your `run` command:
 
 ```
-/your_hypothetical_project_folder/apacheep/html/french_toast.php
+-v $PWD/app:/app
 ```
 
-When the image is built and run, `french_toast.php` will be automatically added to the default web root of the running Apacheep container, a-like so:
-```
-/var/www/html/french_toast.php
-```
-It works both ways, too. If you change french_toast.php inside your running Docker image, those changes will be made to `/your_hypothetical_project_folder/apacheep/html/french_toast.php` as well.
+Here's a full example with that included:
 
+```
+docker run -d -p 8080:80 --name pile_of_cinnamon_toasts -v $PWD/app:app awesometoast/apacheep
+```
+
+For those unfamiliar, $PWD stands for "print working directory". If you're not running this command from the apacheep directory, you'll need to replace $PWD with an absolute path.
 
 ### Changing the default modules/extensions installed
 You'll find the list of default modules/extensions in the appropriate sections of the Dockerfile. If you know you'll want php-mysqli, for example, you would add this line to the \# PHP section:
