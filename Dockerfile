@@ -39,7 +39,7 @@ RUN apt-get install -y rename
 
 # Apply your custom configuration files
 COPY ./configs/apache2.conf /etc/apache2/apache2.conf
-COPY ./configs/php.ini      /etc/php/7.4/apache2/php.ini
+COPY ./configs/php.ini      /etc/php/8.1/apache2/php.ini
 
 # Copy your application files and set up the volume
 RUN mkdir /app

@@ -1,5 +1,5 @@
 # Apacheep
-It's a simple Docker image for Apache 2.4 and PHP 7.4, running on the latest Ubuntu release. It also includes git and Composer.
+It's a simple Docker image for Apache 2.4 and PHP 8.1, running on the latest Ubuntu release. It also includes git and Composer.
 
 ## Introduction
 I work with and build a lot of LAMP applications. Many of them use a hosted database, so I don't always need the "M" in the LAMP stack. I created this to quickly spin up new instances of PHP applications for development or production.
@@ -64,7 +64,7 @@ You'll find the list of default modules/extensions in the appropriate sections o
 You'll find copies of both inside `/apacheep/configs/` which are very close to the default config files for both PHP and Apache. When Apacheep is built, these files will be copied to their expected locations inside the image.
 
 ```/apacheep/configs/apache2.conf -> /etc/apache2.conf
-/apacheep/configs/php.ini -> /etc/php/[PHP VERSION, e.g. '7.4']/apache2/php.ini
+/apacheep/configs/php.ini -> /etc/php/[PHP VERSION, e.g. '8.1']/apache2/php.ini
 ```
 
 Note that unlike the volume'd `html` folder above, these config files are copied only when the container is built, so they don't remain "synced" afterward.
