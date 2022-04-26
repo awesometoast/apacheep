@@ -1,5 +1,5 @@
 # Apacheep
-It's a simple Docker image for Apache 2.4 and PHP 8.1, running on the latest Ubuntu release. It also includes git and Composer.
+It's a simple Docker image for Apache 2.4 and PHP 8.1, running on the latest Ubuntu release. Think LAMP minus the "M". It includes git, npm, and Composer.
 
 ## Introduction
 I work with and build a lot of LAMP applications. Many of them use a hosted database, so I don't always need the "M" in the LAMP stack. I created this to quickly spin up new instances of PHP applications for development or production.
