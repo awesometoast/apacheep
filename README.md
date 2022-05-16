@@ -1,5 +1,5 @@
 # Apacheep
-It's a simple Docker image for Apache 2.4 and PHP 8.1, running on the latest Ubuntu release. Think LAMP minus the "M". It includes git, npm, and Composer.
+It's a simple Docker image for Apache 2.4 and PHP 8.1, running on the latest Ubuntu release. Think "LAMP" minus the "M". It includes git and Composer, and can easily add NPM and others, too.
 
 ## Introduction
 I work with and build a lot of LAMP applications. Many of them use a hosted database, so I don't always need the "M" in the LAMP stack. I created this to quickly spin up new instances of PHP applications for development or production.
@@ -28,10 +28,10 @@ curl -I http://localhost:8080
 docker run -d -p 80:80 -p 443:443 awesometoast/apacheep
 
 # Use a custom container name
-docker run -d -p 8080:80 --name pile_of_cinnamon_toasts awesometoast/apacheep
+docker run -d -p 8080:80 --name apacheep awesometoast/apacheep
 
 # Access running container's shell (using the example name above)
-docker exec -it pile_of_cinnamon_toasts bash
+docker exec -it apacheep bash
 ```
 
 # Customize it
@@ -50,7 +50,7 @@ Using this method, any changes you make to the `apacheep/app` directory's conten
 Here's a full example with that included:
 
 ```
-docker run -d -p 8080:80 --name pile_of_cinnamon_toasts -v $PWD/app:app awesometoast/apacheep
+docker run -d -p 8080:80 --name apacheep -v $PWD/app:app awesometoast/apacheep
 ```
 
 For those unfamiliar, $PWD stands for "print working directory". If you're not running this command from the apacheep directory, you'll need to replace $PWD with an absolute path.
@@ -67,17 +67,38 @@ You'll find copies of both inside `/apacheep/configs/` which are very close to t
 /apacheep/configs/php.ini -> /etc/php/[PHP VERSION, e.g. '8.1']/apache2/php.ini
 ```
 
-Note that unlike the volume'd `html` folder above, these config files are copied only when the container is built, so they don't remain "synced" afterward.
+Note that unlike the volume'd `app` folder above, these config files are copied only when the container is built, so they don't remain "synced" afterward.
 
 Copies of the default config files are also in the /configs folder in case you need them for reference.
 
-#### A note for RedHat/CentOS/Windows Apache users
-On those platforms, you're used to things being named `httpd`. But in the Ubuntu/Debian world, they're named `apache2` even though it's all the same stuff. Why? Because reasons. Probably. There are probably reasons. The point is, `apache2.conf` is the same thing as the `httpd.conf`, in the slim-but-possible chance you were wondering about that.
-
 #### Default PHP extensions enabled
-bz2, curl, fileinfo, gd2, gettext, mbstring, openssl, pdo_mysql
+bcmath, bz2, cgi, curl, fileinfo, mbstring, openssl, pdo, pdo_mysql
 
-### Additional customization
-You can perform all kinds of other adjustments and/or configuration and/or shenanigans by modifying `/configs/init_script.sh` before running `docker build`
 
-### Anyway, enjoy!
+# Using Apacheep in your own project
+You could clone and modify it, or you could use it as a base image like so:
+
+Create a new directory with a new Dockerfile with this at the top:
+```
+FROM awesometoast/apacheep:latest
+```
+
+Then optionally add ENV items like so:
+```
+ENV TOPPING_TYPE "cinnamon"
+ENV CERTS_DIR "/etc/ssl/certs"
+RUN echo ". /etc/environment" >> /etc/apache2/envvars
+RUN echo "export TOPPING_TYPE=${TOPPING_TYPE}" >> /etc/environment
+RUN echo "export CERTS_DIR=${CERTS_DIR}" >> /etc/environment
+```
+
+Add your own site config file like:
+```
+COPY ./docker/your-example-site.conf /etc/apache2/sites-available/your-example-site.conf
+RUN a2ensite your-example-site
+```
+
+You can also add or remove packages/files as desired, of course. Just don't forget to restart Apache in your own Dockerfile after making your changes:
+```
+RUN service apache2 restart
+```

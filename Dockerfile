@@ -1,71 +1,120 @@
+FROM composer:latest
 FROM ubuntu:latest
 
-# This will bypass prompts that require user input while installing things.
+# -------------------------------------------------------
+# GETTING READY
+# -------------------------------------------------------
+
+# Environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 ENV APACHE_RUN_USER=www-data
 ENV APACHE_RUN_USER=staff
+ENV APP_DIR=/app
 
-# Recommend using "apt-get" instead of "apt"
-RUN apt-get update -y
+# Prep for installing Apache/PHP/etc
+RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install -y apt-utils
 
-# Apache2 and associated modules
-RUN apt-get install -y apache2
-RUN apt-get install -y libapache2-mod-php
 
-# NPM
-RUN apt-get install -y npm
+# -------------------------------------------------------
+# INSTALL APACHE 2.4
+# -------------------------------------------------------
 
-# PHP and extensions
+# Initial install, plus the FastCGI module we'll use with PHP
+RUN apt-get install -y apache2 libapache2-mod-fcgid
+
+# Copy our custome Apache configs
+COPY ./configs/apache2.conf /etc/apache2/apache2.conf
+
+# Disable the default Apache site and replace it with our own
+RUN a2dissite 000-default
+COPY ./configs/app.conf /etc/apache2/sites-available/app.conf
+RUN a2ensite app
+
+# Enable Apache modules
+# Add or remove as desired. Check here for a full list:
+# https://httpd.apache.org/docs/current/mod/
+RUN a2enmod rewrite headers http2 ssl
+
+
+# -------------------------------------------------------
+# PHP + FASTCGI
+#
+# FastCGI is faster than the standard mod_php and allows us to use HTTP/2
+# -------------------------------------------------------
+
+# Install PHP and extensions
+# Add or remove as desired. Check here for a full list:
+# https://www.php.net/manual/en/extensions.php
 RUN apt-get install -y php
+RUN apt-get install -y php-bcmath
 RUN apt-get install -y php-bz2
 RUN apt-get install -y php-common
+RUN apt-get install -y php-cgi
 RUN apt-get install -y php-curl
 RUN apt-get install -y php-dev
-RUN apt-get install -y php-gd
+RUN apt-get install -y php-fileinfo
 RUN apt-get install -y php-mbstring
 RUN apt-get install -y php-pdo
 RUN apt-get install -y php-pdo-mysql
 RUN apt-get install -y php-zip
 
+# To use FastCGI, we have to disable Apache's classic PHP module first
+# (mod_php/php8.1)
+# We also need to swap mpm_prefork for mpm_worker
+# Trivia: MPM stands for Multi-Processing Module
+RUN a2dismod php8.1 mpm_prefork
+RUN a2enmod fcgid mpm_worker
+
+# FastCGI involves a "wrapper script"
+COPY ./configs/php-fcgid-wrapper.sh /usr/local/bin/php-fcgid-wrapper
+RUN chmod +x /usr/local/bin/php-fcgid-wrapper
+
+# Among other things, this custom .conf tells Apache to use the
+# wrapper script above and where to find it
+COPY ./configs/php-cgi.conf /etc/apache2/conf-available/php-cgi.conf
+RUN a2enconf php-cgi
+
+# And finally, our general PHP configs
+COPY ./configs/php.ini      /etc/php/8.1/cgi/php.ini
+
+
+# -------------------------------------------------------
 # OTHER STUFF
-# RUN apt-get install -y software-properties-common
-RUN apt-get install -y nano
+# Like git & Composer
+# -------------------------------------------------------
 RUN apt-get install -y git
-RUN apt-get install -y composer
-RUN apt-get install -y tree
-RUN apt-get install -y rename
-  # Here are a few other popular items:
-  # RUN apt-get install -yq nodejs npm pwgen wget vim
+RUN apt-get install -y nano
 
-# Apply your custom configuration files
-COPY ./configs/apache2.conf /etc/apache2/apache2.conf
-COPY ./configs/php.ini      /etc/php/8.1/apache2/php.ini
+# COMPOSER
+# We can grab this from their official Docker image like so:
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy your application files and set up the volume
-RUN mkdir /app
-RUN chown -R www-data:staff /app
-ADD app/ /app
-VOLUME "/app"
+# NPM
+# It's hefty, so it's not installed by default.
+# Uncomment the next line to install it:
+# RUN apt-get install -y npm
 
-# This will cause our default DriectoryRoot to remain /var/www/html instead of /app, so let's remove it
-RUN rm /etc/apache2/sites-enabled/000-default.conf
 
-# Copy and run the additional configuration script
-# By default, this creates an alias for httpd="apache2" (just as an example)
-COPY ./configs/init_script.sh /usr/sbin/
-RUN chmod +x /usr/sbin/init_script.sh
-RUN /usr/sbin/init_script.sh
+# -------------------------------------------------------
+# FINISHING UP
+# -------------------------------------------------------
 
 # Tidy up unused dependencies
 RUN apt-get autoremove -y
 
+# Copy our site's files and set up the volume
+RUN mkdir /app
+RUN chown -R www-data:staff /app
+ADD app/ /app
+VOLUME "/app"
+WORKDIR /app
+
 # Launch Apache and run it in the foreground
-# Being in the "foreground" means Apache is the primary service at play. It should always run, and if it stops or restarts, the whole container will do the same.
+# Trivia: Being in the "foreground" means Apache is the primary service at play. It should always run, and if it stops or restarts, the whole container will do the same
 CMD ["apache2ctl", "-D", "FOREGROUND"]
-RUN a2enmod rewrite
 RUN service apache2 restart
 
 # Expose ports
