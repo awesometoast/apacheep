@@ -56,6 +56,7 @@ RUN apt-get install -y php-cgi
 RUN apt-get install -y php-curl
 RUN apt-get install -y php-dev
 RUN apt-get install -y php-fileinfo
+RUN apt-get install -y php-gd
 RUN apt-get install -y php-mbstring
 RUN apt-get install -y php-pdo
 RUN apt-get install -y php-pdo-mysql
