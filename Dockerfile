@@ -1,9 +1,10 @@
 FROM composer:latest
+FROM node:latest as node
 FROM ubuntu:latest
 
-# -------------------------------------------------------
+# -----------------------------
 # GETTING READY
-# -------------------------------------------------------
+# -----------------------------
 
 # Environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -11,6 +12,7 @@ ENV TZ=UTC
 ENV APACHE_RUN_USER=www-data
 ENV APACHE_RUN_USER=staff
 ENV APP_DIR=/app
+RUN echo "export APP_DIR=${APP_DIR}" >> /etc/environment
 
 # Prep for installing Apache/PHP/etc
 RUN apt-get update
@@ -77,29 +79,28 @@ COPY ./configs/php-cgi.conf /etc/apache2/conf-available/php-cgi.conf
 RUN a2enconf php-cgi
 
 # And finally, our general PHP configs
-COPY ./configs/php.ini      /etc/php/8.1/cgi/php.ini
+COPY ./configs/php.ini /etc/php/8.1/cgi/php.ini
 
 
-# -------------------------------------------------------
+# -----------------------------
 # OTHER STUFF
 # Like git & Composer
-# -------------------------------------------------------
-RUN apt-get install -y git
-RUN apt-get install -y nano
+# -----------------------------
+RUN apt-get install -yqq git nano
 
 # COMPOSER
 # We can grab this from their official Docker image like so:
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # NPM
-# It's hefty, so it's not installed by default.
-# Uncomment the next line to install it:
-# RUN apt-get install -y npm
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
 
 
-# -------------------------------------------------------
+# -----------------------------
 # FINISHING UP
-# -------------------------------------------------------
+# -----------------------------
 
 # Tidy up unused dependencies
 RUN apt-get autoremove -y
