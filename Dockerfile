@@ -18,20 +18,18 @@ RUN apt-get upgrade -y
 RUN apt-get install -y apt-utils
 
 
-# -------------------------------------------------------
+# -----------------------------
 # INSTALL APACHE 2.4
-# -------------------------------------------------------
+# -----------------------------
 
-# Initial install, plus the FastCGI module we'll use with PHP
+# Install Apache + the FastCGI module we'll use with PHP
 RUN apt-get install -y apache2 libapache2-mod-fcgid
 
-# Copy our custome Apache configs
+# Copy our custom Apache configs
 COPY ./configs/apache2.conf /etc/apache2/apache2.conf
 
-# Disable the default Apache site and replace it with our own
-RUN a2dissite 000-default
-COPY ./configs/app.conf /etc/apache2/sites-available/app.conf
-RUN a2ensite app
+# Replace the default Apache "it works" page with our own
+COPY ./configs/app.conf /etc/apache2/sites-available/000-default.conf
 
 # Enable Apache modules
 # Add or remove as desired. Check here for a full list:
@@ -39,28 +37,28 @@ RUN a2ensite app
 RUN a2enmod rewrite headers http2 ssl
 
 
-# -------------------------------------------------------
+# -----------------------------
 # PHP + FASTCGI
-#
 # FastCGI is faster than the standard mod_php and allows us to use HTTP/2
-# -------------------------------------------------------
+# -----------------------------
 
 # Install PHP and extensions
 # Add or remove as desired. Check here for a full list:
 # https://www.php.net/manual/en/extensions.php
-RUN apt-get install -y php
-RUN apt-get install -y php-bcmath
-RUN apt-get install -y php-bz2
-RUN apt-get install -y php-common
-RUN apt-get install -y php-cgi
-RUN apt-get install -y php-curl
-RUN apt-get install -y php-dev
-RUN apt-get install -y php-fileinfo
-RUN apt-get install -y php-gd
-RUN apt-get install -y php-mbstring
-RUN apt-get install -y php-pdo
-RUN apt-get install -y php-pdo-mysql
-RUN apt-get install -y php-zip
+RUN apt-get install -y  \
+    php \
+    php-bcmath \
+    php-bz2 \
+    php-common \
+    php-cgi \
+    php-curl \
+    php-dev \
+    php-fileinfo \
+    php-gd \
+    php-mbstring \
+    php-pdo \
+    php-pdo-mysql \
+    php-zip
 
 # To use FastCGI, we have to disable Apache's classic PHP module first
 # (mod_php/php8.1)
