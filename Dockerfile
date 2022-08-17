@@ -12,7 +12,13 @@ ENV TZ=UTC
 ENV APACHE_RUN_USER=www-data
 ENV APACHE_RUN_USER=staff
 ENV APP_DIR=/app
+
+# Apache has its own layer of environmental variables,
+# separate from the system's. (Confusing, I know.)
+# So there's a little more work to provide them to Apache.
+# See https://httpd.apache.org/docs/current/env.html
 RUN echo "export APP_DIR=${APP_DIR}" >> /etc/environment
+
 
 # Prep for installing Apache/PHP/etc
 RUN apt-get update
