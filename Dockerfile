@@ -23,7 +23,10 @@ RUN echo "export APP_DIR=${APP_DIR}" >> /etc/environment
 # Prep for installing Apache/PHP/etc
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install -y apt-utils
+RUN apt-get install -y \
+    apt-utils \
+    openssh-server \
+    unattended-upgrades
 
 
 # -----------------------------
@@ -110,6 +113,9 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
 
 # Tidy up unused dependencies
 RUN apt-get autoremove -y
+
+# Enable automatic security updates
+RUN unattended-upgrades
 
 # Copy our site's files and set up the volume
 RUN mkdir /app
